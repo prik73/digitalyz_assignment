@@ -75,8 +75,8 @@ export default function EnhancedTimetableDashboard() {
   });
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <Card className="max-w-6xl mx-auto bg-white shadow-lg border-0">
+    <div className="p-6 bg-gray-50 min-h-screen w-screen">
+      <Card className="w-full mx-auto bg-white shadow-lg border-0">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-lg">
           <CardTitle className="text-2xl font-bold flex items-center">
             <BookOpen className="mr-2 h-6 w-6" />
@@ -115,7 +115,7 @@ export default function EnhancedTimetableDashboard() {
           </div>
 
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="w-full bg-gray-100 rounded-none p-0 flex">
+            <TabsList className="w-full flex justify-center  bg-gray-100 rounded-none p-0 ">
               <TabsTrigger value="overview" className="flex-1 py-3 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-none">
                 Overview
               </TabsTrigger>
@@ -126,7 +126,7 @@ export default function EnhancedTimetableDashboard() {
 
             {/* Timetable Display */}
             <TabsContent value="overview" className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-5">
                 {Object.entries(filteredData).map(([courseKey, course]) => (
                   <Card key={courseKey} className="border border-gray-200 hover:shadow-md transition-shadow duration-200">
                     <CardHeader className="pb-2">
@@ -160,6 +160,45 @@ export default function EnhancedTimetableDashboard() {
                 ))}
               </div>
             </TabsContent>
+
+            <TabsContent value="details" className="p-4">
+  <div className="space-y-4">
+    {Object.entries(filteredData).map(([courseKey, course]) => (
+      <Card key={courseKey} className="border border-gray-200 hover:shadow-md transition-shadow duration-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-semibold text-blue-700">{course["Lecture Title"]}</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <ScrollArea className="h-64">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Section</TableHead>
+                  <TableHead>Block</TableHead>
+                  <TableHead>Room</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Professors</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {course.Sections.map((section, index) => (
+                  <TableRow key={index}>
+                    <TableCell>Section {section["Section Number"]}</TableCell>
+                    <TableCell>{section["Block"]}</TableCell>
+                    <TableCell>{section["Room Number"]}</TableCell>
+                    <TableCell>{section["Time Slot"]}</TableCell>
+                    <TableCell>{section.Teachers.join(", ")}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+</TabsContent>
+
           </Tabs>
         </CardContent>
       </Card>
