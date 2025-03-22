@@ -18,27 +18,35 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="p-6 grid grid-cols-12 gap-4 min-h-screen">
+    <div className="p-3 md:p-5 grid grid-cols-12 gap-8 min-h-screen bg-slate-50">
       {/* Left Pane: Subject List */}
-      <div className="col-span-4 lg:col-span-3 bg-gray-100 p-4 rounded-md shadow-md h-screen overflow-auto">
-        <h2 className="text-lg font-bold mb-3">Subjects</h2>
-        <ScrollArea className="h-[80vh]">
-          <ul className="space-y-2">
-            {Object.keys(data).map((courseKey) => (
-              <li
-                key={courseKey}
-                className={`p-2 cursor-pointer rounded-md ${selectedCourse === courseKey ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
-                onClick={() => setSelectedCourse(courseKey)}
-              >
-                {data[courseKey]["Lecture Title"]}
-              </li>
-            ))}
-          </ul>
+      <div className="col-span-5 lg:col-span-4 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-4 border-b border-slate-100">
+          <h2 className="text-lg font-medium text-slate-800 px-2">Subjects</h2>
+        </div>
+        <ScrollArea className="h-[calc(100vh-7rem)]">
+          <div className="p-3">
+            <ul className="space-y-2">
+              {Object.keys(data).map((courseKey) => (
+                <li
+                  key={courseKey}
+                  className={`px-4 py-3 text-sm rounded-md cursor-pointer transition-colors duration-150 ${
+                    selectedCourse === courseKey 
+                      ? "bg-slate-100 text-slate-900 font-medium" 
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                  onClick={() => setSelectedCourse(courseKey)}
+                >
+                  {data[courseKey]["Lecture Title"]}
+                </li>
+              ))}
+            </ul>
+          </div>
         </ScrollArea>
       </div>
 
       {/* Right Pane: Course Details */}
-      <div className="col-span-8 lg:col-span-9 flex flex-col min-h-screen">
+      <div className="col-span-7 lg:col-span-8 flex flex-col">
         {selectedCourse && data[selectedCourse] && (
           <CourseDetails title={data[selectedCourse]["Lecture Title"]} data={data[selectedCourse]} />
         )}
@@ -50,59 +58,61 @@ export default function Dashboard() {
 // Course Details Component
 function CourseDetails({ title, data }) {
   return (
-    <Card className="flex flex-col flex-grow p-4 h-full">
-      <CardContent className="flex flex-col flex-grow">
-        <h2 className="text-xl font-bold mb-4">{title}</h2>
-
+    <Card className="flex flex-col flex-grow border-slate-200 shadow-sm bg-white overflow-hidden">
+      <div className="px-8 py-5 border-b border-slate-100">
+        <h2 className="text-xl font-medium text-slate-800">{title}</h2>
+      </div>
+      <CardContent className="flex flex-col flex-grow p-0">
         {/* Content Wrapper for Full Height Control */}
         <div className="flex flex-col flex-grow overflow-hidden">
           {/* Scrollable Content */}
-          <ScrollArea className="flex-grow overflow-auto">
+          <ScrollArea className="flex-grow p-8">
             {/* Course Info */}
-            <Table className="w-full text-sm mb-6">
-              <TableHeader>
-                <TableRow className="bg-gray-200">
-                  <TableHead>Field</TableHead>
-                  <TableHead>Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(data).map(([key, value], index) => (
-                  typeof value !== "object" ? (
-                    <TableRow key={index}>
-                      <TableCell>{key.replace(/_/g, " ")}</TableCell>
-                      <TableCell>{value || "N/A"}</TableCell>
-                    </TableRow>
-                  ) : null
-                ))}
-              </TableBody>
-            </Table>
-
-            {/* Enrolled Students */}
-            {data["Enrolled Students"] && (
-              <>
-                <h3 className="text-lg font-bold mb-2">Enrolled Students</h3>
+            <div className="mb-10">
+              <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">Course Information</h3>
+              <div className="bg-slate-50 rounded-lg overflow-hidden mb-2">
                 <Table className="w-full text-sm">
-                  <TableHeader>
-                    <TableRow className="bg-gray-200">
-                      <TableHead>Student ID</TableHead>
-                      <TableHead>College Year</TableHead>
-                      <TableHead>Request Term</TableHead>
-                      <TableHead>Priority</TableHead>
-                    </TableRow>
-                  </TableHeader>
                   <TableBody>
-                    {data["Enrolled Students"].map((student, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{student["Student ID"]}</TableCell>
-                        <TableCell>{student["College Year"]}</TableCell>
-                        <TableCell>{student["Request Term"]}</TableCell>
-                        <TableCell>{student["Priority"]}</TableCell>
-                      </TableRow>
+                    {Object.entries(data).map(([key, value], index) => (
+                      typeof value !== "object" ? (
+                        <TableRow key={index} className="border-b border-slate-100 last:border-0">
+                          <TableCell className="py-4 px-6 text-slate-600 font-medium">{key.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="py-4 px-6 text-slate-800">{value || "—"}</TableCell>
+                        </TableRow>
+                      ) : null
                     ))}
                   </TableBody>
                 </Table>
-              </>
+              </div>
+            </div>
+
+            {/* Enrolled Students */}
+            {data["Enrolled Students"] && (
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">Enrolled Students</h3>
+                <div className="bg-slate-50 rounded-lg overflow-hidden">
+                  <Table className="w-full text-sm">
+                    <TableHeader>
+                      <TableRow className="border-b border-slate-200">
+                        <TableHead className="py-4 px-6 text-slate-600 font-medium bg-slate-100">Student ID</TableHead>
+                        <TableHead className="py-4 px-6 text-slate-600 font-medium bg-slate-100">College Year</TableHead>
+                        <TableHead className="py-4 px-6 text-slate-600 font-medium bg-slate-100">Request Term</TableHead>
+                        <TableHead className="py-4 px-6 text-slate-600 font-medium bg-slate-100">Priority</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data["Enrolled Students"].map((student, index) => (
+                        <TableRow key={index} className="border-b border-slate-100 last:border-0 hover:bg-white transition-colors duration-150">
+                          <TableCell className="py-4 px-6 text-slate-800">{student["Student ID"]}</TableCell>
+                          <TableCell className="py-4 px-6 text-slate-800">{student["College Year"]}</TableCell>
+                          <TableCell className="py-4 px-6 text-slate-800">{student["Request Term"]}</TableCell>
+                          <TableCell className="py-4 px-6 text-slate-800">{student["Priority"]}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             )}
           </ScrollArea>
         </div>

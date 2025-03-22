@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Loader } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader, Users, BookOpen, MapPin, Clock } from "lucide-react";
 
-export default function ResultDashboard() {
+export default function EnhancedTimetableDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("faculty"); // "faculty" | "students"
+  const [expandedSection, setExpandedSection] = useState(null);
+  const [role, setRole] = useState("all");
+  const [selectedUser, setSelectedUser] = useState("");
 
   useEffect(() => {
     fetch("/result2.json")
@@ -22,79 +27,142 @@ export default function ResultDashboard() {
       });
   }, []);
 
+  const toggleSection = (courseKey, sectionIndex) => {
+    const sectionId = `${courseKey}-${sectionIndex}`;
+    setExpandedSection(expandedSection === sectionId ? null : sectionId);
+  };
+
+  const filterTimetable = () => {
+    if (!data) return {};
+
+    if (role === "all" || !selectedUser) {
+      return data;
+    }
+
+    return Object.entries(data).reduce((filtered, [courseKey, course]) => {
+      const filteredSections = course.Sections.filter((section) =>
+        role === "student"
+          ? section.Students.some((s) => s["Student ID"] === selectedUser)
+          : section.Teachers.includes(selectedUser)
+      );
+
+      if (filteredSections.length > 0) {
+        filtered[courseKey] = { ...course, Sections: filteredSections };
+      }
+
+      return filtered;
+    }, {});
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader className="animate-spin w-10 h-10 text-gray-500" />
+      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
+        <Loader className="animate-spin w-10 h-10 text-blue-600 mb-4" />
+        <p className="text-gray-600">Loading timetable data...</p>
       </div>
     );
   }
 
+  const filteredData = filterTimetable();
+  const allProfessors = new Set();
+  const allStudents = new Set();
+
+  Object.values(data).forEach((course) => {
+    course.Sections.forEach((section) => {
+      section.Teachers.forEach((teacher) => allProfessors.add(teacher));
+      section.Students.forEach((student) => allStudents.add(student["Student ID"]));
+    });
+  });
+
   return (
-    <div className="p-6  mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-center">Timetable Overview</h2>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <Card className="max-w-6xl mx-auto bg-white shadow-lg border-0">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-lg">
+          <CardTitle className="text-2xl font-bold flex items-center">
+            <BookOpen className="mr-2 h-6 w-6" />
+            Academic Timetable Dashboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4">
+          {/* User Role Selection */}
+          <div className="mb-4 flex gap-4">
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="professor">Professor</SelectItem>
+              </SelectContent>
+            </Select>
 
-      {/* Buttons for Switching Tabs */}
-      <div className="flex justify-center gap-4 mb-4">
-        <Button 
-          onClick={() => setActiveTab("faculty")} 
-          variant={activeTab === "faculty" ? "default" : "outline"}
-        >
-          Faculty View
-        </Button>
-        <Button 
-          onClick={() => setActiveTab("students")} 
-          variant={activeTab === "students" ? "default" : "outline"}
-        >
-          Student View
-        </Button>
-      </div>
+            {/* User Selection */}
+            {role !== "all" && (
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder={`Select ${role === "student" ? "Student" : "Professor"}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(role === "student" ? [...allStudents] : [...allProfessors]).map((user) => (
+                    <SelectItem key={user} value={user}>
+                      {user}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
 
-      {/* Scrollable Content Area */}
-      <ScrollArea className="h-[75vh] w-[85vw] p-1 border rounded-lg shadow-md bg-white">
-        {data &&
-          Object.entries(data).map(([courseKey, course]) => (
-            <Card key={courseKey} className="mb-6 border border-gray-300 shadow-lg">
-              <CardHeader className="bg-blue-100 p-4 rounded-t-md">
-                <CardTitle className="text-lg font-semibold text-blue-700">
-                  {course["Lecture Title"]}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-4">
-                {course.Sections.map((section, index) => (
-                  <Card key={index} className="border border-gray-200 shadow-sm p-4">
-                    <CardHeader>
-                      <CardTitle className="text-md font-medium">
-                        Section {section["Section Number"]} - Block {section["Block"]}
-                      </CardTitle>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="w-full bg-gray-100 rounded-none p-0 flex">
+              <TabsTrigger value="overview" className="flex-1 py-3 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-none">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="details" className="flex-1 py-3 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-none">
+                Detailed View
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Timetable Display */}
+            <TabsContent value="overview" className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(filteredData).map(([courseKey, course]) => (
+                  <Card key={courseKey} className="border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold text-blue-700">{course["Lecture Title"]}</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600">
-                        <strong>Room:</strong> {section["Room Number"]}
-                      </p>
-                      {activeTab === "faculty" ? (
-                        <p className="text-sm text-gray-600">
-                          <strong>Teachers:</strong> {section.Teachers.join(", ")}
-                        </p>
-                      ) : (
-                        <div>
-                          <strong className="text-sm text-gray-600">Students Enrolled:</strong>
-                          <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
-                            {section.Students.map((student, idx) => (
-                              <li key={idx}>
-                                ID: {student["Student ID"]} | Year: {student["College Year"]} | Priority: {student.Priority}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                    <CardContent className="pt-0">
+                      <div className="space-y-2">
+                        {course.Sections.map((section, index) => (
+                          <div
+                            key={index}
+                            className="flex flex-col p-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                            onClick={() => toggleSection(courseKey, index)}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center">
+                                <Badge variant="outline" className="mr-2 bg-blue-50">
+                                  Section {section["Section Number"]}
+                                </Badge>
+                                <span className="text-sm font-medium">Block {section["Block"]}</span>
+                              </div>
+                              <div className="flex items-center text-gray-600 text-sm">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                <span>Room {section["Room Number"]}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
-              </CardContent>
-            </Card>
-          ))}
-      </ScrollArea>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
