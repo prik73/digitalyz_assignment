@@ -5,7 +5,7 @@ import Timetable from "./components/Timetable";
 import { Analytics } from "@vercel/analytics/react"
 
 function App() {
-  <Analytics/>
+  
   return (
     
     <Router>
@@ -16,6 +16,7 @@ function App() {
           
         </Routes>
       </div>
+      <Analytics/>
     </Router>
   );
 }
