@@ -5,6 +5,7 @@ import Timetable from "./components/Timetable";
 import { Analytics } from "@vercel/analytics/react"
 
 function App() {
+  <Analytics/>
   return (
     
     <Router>
@@ -12,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/timetable" element={<Timetable />} />
-          <Analytics/>
+          
         </Routes>
       </div>
     </Router>
@@ -20,6 +21,7 @@ function App() {
 }
 
 function MainPage() {
+  
   return (
     <div className="w-4/5 mx-auto p-8 bg-white rounded-xl shadow-md">
       
